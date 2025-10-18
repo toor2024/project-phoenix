@@ -6,5 +6,11 @@
       <description>Anonymous FTP login detected on target.</description>
       <severity>7.5</severity>
     </result>
+    <result>
+      <host>192.168.56.101</host>
+      <name>OpenSSH User Enumeration</name>
+      <description>Remote user enumeration possible via SSH banner behavior.</description>
+      <severity>9.8</severity>
+    </result>
   </results>
 </report>

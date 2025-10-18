@@ -1,2 +1,2 @@
 ## Contributors
-- Your Name — Solo (all roles)
+- Deep Toor — Solo (all roles)

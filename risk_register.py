@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import csv
 import xml.etree.ElementTree as ET
 
@@ -38,8 +39,16 @@ def load_assets(path="assets.csv"):
     return assets
 
 def build_risk_rows(findings, assets_rows):
-    # make impact lookup by IP from assets.csv
-    impact_by_ip = {r['ip_address']: int(r.get('asset_criticality', '1') or 1) for r in assets_rows}
+    # Build lookups from assets.csv
+    impact_by_ip = {}
+    asset_name_by_ip = {}
+    owner_by_ip = {}
+    for r in assets_rows:
+        ip = r['ip_address']
+        impact_by_ip[ip] = int(r.get('asset_criticality', '1') or 1)
+        asset_name_by_ip[ip] = r.get('asset_name', '')
+        owner_by_ip[ip] = r.get('asset_owner', '')
+
     out = []
     for f in findings:
         ip = f['host']
@@ -50,6 +59,8 @@ def build_risk_rows(findings, assets_rows):
         risk_score = impact * likelihood
         out.append({
             'ip_address': ip,
+            'asset_name': asset_name_by_ip.get(ip, ''),
+            'asset_owner': owner_by_ip.get(ip, ''),
             'vulnerability': f['name'],
             'cvss': f['cvss'],
             'impact': impact,
@@ -62,17 +73,26 @@ def build_risk_rows(findings, assets_rows):
     return out
 
 def write_csv(rows, path="risk_register.csv"):
-    fields = ['ip_address','vulnerability','cvss','impact','likelihood','risk_score','description']
+    fields = [
+        'ip_address','asset_name','asset_owner',
+        'vulnerability','cvss','impact','likelihood','risk_score','description'
+    ]
     with open(path, 'w', newline='', encoding='utf-8') as f:
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()
         w.writerows(rows)
 
 if __name__ == "__main__":
-    rows = load_assets()
+    ap = argparse.ArgumentParser(description="Project Phoenix risk register")
+    ap.add_argument("--assets", default="assets.csv")
+    ap.add_argument("--report-xml", default="report_sample.xml")
+    ap.add_argument("--out", default="risk_register.csv")
+    args = ap.parse_args()
+
+    rows = load_assets(args.assets)
     print(f"Loaded {len(rows)} asset(s).")
 
-    findings = parse_gvm_xml("report_sample.xml")
+    findings = parse_gvm_xml(args.report_xml)
     print(f"Parsed {len(findings)} finding(s).")
     if findings:
         f = findings[0]
@@ -86,5 +106,5 @@ if __name__ == "__main__":
 
     # write full CSV
     rows_out = build_risk_rows(findings, rows)
-    write_csv(rows_out, "risk_register.csv")
-    print(f"Wrote risk_register.csv with {len(rows_out)} row(s).")
+    write_csv(rows_out, args.out)
+    print(f"Wrote {args.out} with {len(rows_out)} row(s).")
