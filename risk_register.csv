@@ -1,0 +1,2 @@
+ip_address,vulnerability,cvss,impact,likelihood,risk_score,description
+192.168.56.101,FTP Server Allows Anonymous Login,7.5,4,4,16,Anonymous FTP login detected on target.
