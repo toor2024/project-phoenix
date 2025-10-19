@@ -1,2 +1,2 @@
-ip_address,asset_name,asset_owner,asset_criticality
+ipAddress,assetName,assetOwner,assetCriticality
 192.168.56.101,Metasploitable2,Blue Team,4
